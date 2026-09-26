@@ -25,8 +25,8 @@ liczniki „50 / 60+ / 15 lat”, zero realizacji instalacji. Demo v2 to **pełn
 z przenośnikami, nadmorski resort, budynek wielorodzinny w Ustce, kotłownie, rozdzielnia) — **na ich stronie nie ma żadnego
 z nich**. W demie są wszystkie. Zero stocku: każde zdjęcie to ich materiał (`zrodla-zdjec.html`).
 
-Styl: biel + piaskowe tło sekcji, jedna ciemna sekcja (instalacje), akcent butelkowa zieleń (#1e5b3a — nawiązanie do zieleni
-z ich katalogu, bez limonki), jedna rodzina fontów Onest (lokalnie, woff2), ich czarne logo w poziomie złożone z pionowego.
+Styl (v3, 26.09 wieczorem, po „zmień projekt wizualny”): grafit (#1a1a18, jak ich czarne logo) + kolor drewna (#c7843f) jako akcent, zdjęcie domu na całą szerokość w hero, ciemne pasy nagłówków podstron, kroki budowy poziomo z dużymi numerami, CTA na zdjęciu domu, font Hanken Grotesk (lokalnie).
+Logo: ich czarne logo w poziomie, w nagłówku w wersji białej.
 Bez mono-etykiet, liczników, ziarna, ekranu ładowania. Polskie „sierotki” (i, w, z…) sklejane twardą spacją.
 
 ## Techniczne SEO

@@ -94,7 +94,7 @@ def head(p, path, title, desc, og='og.jpg', ogalt='Dom szkieletowy EXEVER z elew
 <!-- DEMO: przy wdrożeniu usunąć noindex i podmienić adresy na domenę klienta -->
 <meta name="robots" content="noindex, follow">
 <link rel="canonical" href="{BASE}{path}">
-<meta name="theme-color" content="#191c18">
+<meta name="theme-color" content="#1a1a18">
 <meta name="format-detection" content="telephone=no">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pl_PL">
@@ -110,8 +110,8 @@ def head(p, path, title, desc, og='og.jpg', ogalt='Dom szkieletowy EXEVER z elew
 <link rel="icon" href="{p}favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{p}apple-touch-icon.png">
 <link rel="manifest" href="{p}site.webmanifest">
-<link rel="preload" href="{p}fonts/onest-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{p}fonts/onest-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{p}fonts/hanken-grotesk-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{p}fonts/hanken-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 {pre}<link rel="stylesheet" href="{p}assets/styles.css">
 <script type="application/ld+json">
 {ldj}
@@ -126,7 +126,7 @@ def header(p, cur):
         f'      <a href="{p}{u}"{" aria-current=\"page\"" if u == cur else ""}>{n}</a>' for u, n in NAV)
     return f'''<header class="site-head">
   <div class="wrap head-in">
-    <a class="brand" href="{p or './'}" aria-label="EXEVER – strona główna"><img src="{p}img/logo.png" width="535" height="120" alt="EXEVER"></a>
+    <a class="brand" href="{p or './'}" aria-label="EXEVER – strona główna"><img src="{p}img/logo-biale.png" width="535" height="120" alt="EXEVER"></a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
     <nav class="menu" id="menu" aria-label="Menu główne">
 {links}
@@ -192,6 +192,7 @@ def crumbs(p, name):
 
 def cta(p, h='Masz działkę albo projekt? Porozmawiajmy.', t='Pierwsza konsultacja jest bezpłatna. Doradzimy, zanim cokolwiek podpiszesz.', temat='dom'):
     return f'''<section class="cta">
+  {pic(p, 'dom-narozny', '', '100vw', cls='cta-bg')}
   <div class="wrap">
     <div>
       <h2>{h}</h2>
@@ -327,7 +328,7 @@ def home():
              'EXEVER sp. z o.o. z Ustki: domy szkieletowe z drewna od projektu do odbioru oraz instalacje elektryczne, sanitarne i grzewcze. Od 2010 roku. Tel. 601 681 185.',
              ld=[ORG, {"@type": "WebSite", "@id": BASE + "#strona", "url": BASE, "name": "EXEVER", "inLanguage": "pl-PL",
                        "publisher": {"@id": BASE + "#firma"}}],
-             preload=('dom-narozny', '(min-width: 961px) 52vw, 100vw'))
+             preload=('dom-dlugi', '100vw'))
     body = f'''
 <section class="hero">
   <div class="hero-txt">
@@ -344,7 +345,7 @@ def home():
     </div>
   </div>
   <div class="hero-img">
-    {pic(p, 'dom-narozny', 'Dom szkieletowy EXEVER z elewacją z pionowych desek', '(min-width: 961px) 52vw, 100vw', lazy=False, high=True)}
+    {pic(p, 'dom-dlugi', 'Dom szkieletowy EXEVER z przeszkleniami i elewacją z desek', '100vw', lazy=False, high=True)}
   </div>
 </section>
 
@@ -356,7 +357,7 @@ def home():
     </div>
     <div class="doors">
       <a class="door" href="domy-szkieletowe/">
-        <div class="door-img">{pic(p, 'dom-dlugi', 'Dom szkieletowy z dużymi przeszkleniami', '(min-width: 961px) 586px, 100vw')}</div>
+        <div class="door-img">{pic(p, 'dom-narozny', 'Dom szkieletowy z elewacją z pionowych desek', '(min-width: 961px) 586px, 100vw')}</div>
         <div class="door-body">
           <h3>Dom szkieletowy pod klucz</h3>
           <p>Konstrukcja z drewna, wełna mineralna w ścianach, dachu i podłodze, wykończenie w standardzie, który wybierzesz.</p>
@@ -387,7 +388,7 @@ def home():
   </div>
 </section>
 
-<section class="sec sec-sand">
+<section class="sec sec-dark">
   <div class="wrap">
     <div class="split">
       <div class="split-img">
@@ -414,7 +415,7 @@ def home():
   </div>
 </section>
 
-<section class="sec sec-dark">
+<section class="sec">
   <div class="wrap">
     <div class="sec-head-row">
       <div class="sec-head">
@@ -422,7 +423,7 @@ def home():
         <h2>Od instalacji zaczynaliśmy w 2010 roku</h2>
         <p>Dziś robimy je w domach, halach i budynkach wielorodzinnych. Pracujemy dla firm wykonawczych, inwestorów i klientów indywidualnych na terenie całej Polski.</p>
       </div>
-      <a class="btn btn-ghost" href="instalacje/">Zakres instalacji</a>
+      <a class="btn btn-sec" href="instalacje/">Zakres instalacji</a>
     </div>
     <div class="inst">
       <div>
@@ -449,7 +450,7 @@ def home():
   </div>
 </section>
 
-<section class="sec">
+<section class="sec sec-dark">
   <div class="wrap">
     <div class="sec-head">
       <h2>Jak wygląda budowa domu z nami</h2>
@@ -572,7 +573,7 @@ def domy():
   </div>
 </section>
 
-<section class="sec" id="przebieg">
+<section class="sec sec-dark" id="przebieg">
   <div class="wrap">
     <div class="sec-head">
       <h2>Przebieg budowy w 10 krokach</h2>
@@ -805,7 +806,7 @@ def kontakt():
     <p class="lead">Zadzwoń albo napisz, czego potrzebujesz. Pierwsza konsultacja w sprawie domu jest bezpłatna.</p>
   </div>
 </section>
-<section class="sec" style="padding-top:24px">
+<section class="sec" style="padding-top:64px">
   <div class="wrap contact">
     <div>
       <a class="tel-big" href="tel:{TEL1H}">{TEL1}</a>
@@ -896,12 +897,12 @@ def extras():
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nie ma takiej strony | EXEVER</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#191c18">
+<meta name="theme-color" content="#1a1a18">
 <link rel="icon" href="{b}favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{b}assets/styles.css">
 </head>
 <body>
-<header class="site-head"><div class="wrap head-in"><a class="brand" href="{b}" aria-label="EXEVER – strona główna"><img src="{b}img/logo.png" width="535" height="120" alt="EXEVER"></a></div></header>
+<header class="site-head"><div class="wrap head-in"><a class="brand" href="{b}" aria-label="EXEVER – strona główna"><img src="{b}img/logo-biale.png" width="535" height="120" alt="EXEVER"></a></div></header>
 <main class="sec"><div class="wrap doc">
 <h1>Nie ma takiej strony</h1>
 <p style="margin-top:18px">Adres mógł się zmienić. Zacznij od strony głównej albo zadzwoń: <a href="tel:{TEL1H}">{TEL1}</a>.</p>
