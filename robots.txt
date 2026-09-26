@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
 Sitemap: https://impulseo-pl.github.io/exever/sitemap.xml
