@@ -1,4 +1,4 @@
-# EXEVER — demo v2 (domy szkieletowe + instalacje)
+# EXEVER — demo v4 (domy szkieletowe + instalacje)
 
 Lead: **Krzysztof** (w KRS prezes zarządu: Krzysztof Kowalski), **EXEVER sp. z o.o.**, +48 601 681 185, biuro@exever.pl,
 ul. Grunwaldzka 18, 76-270 Ustka; oddział: ul. Przemysłowa 6c, Koszalin. Obecna strona: https://www.exever.pl/
@@ -25,20 +25,36 @@ liczniki „50 / 60+ / 15 lat”, zero realizacji instalacji. Demo v2 to **pełn
 z przenośnikami, nadmorski resort, budynek wielorodzinny w Ustce, kotłownie, rozdzielnia) — **na ich stronie nie ma żadnego
 z nich**. W demie są wszystkie. Zero stocku: każde zdjęcie to ich materiał (`zrodla-zdjec.html`).
 
-Styl (v3, 26.09 wieczorem, po „zmień projekt wizualny”): grafit (#1a1a18, jak ich czarne logo) + kolor drewna (#c7843f) jako akcent, zdjęcie domu na całą szerokość w hero, ciemne pasy nagłówków podstron, kroki budowy poziomo z dużymi numerami, CTA na zdjęciu domu, font Hanken Grotesk (lokalnie).
-Logo: ich czarne logo w poziomie, w nagłówku w wersji białej.
-Bez mono-etykiet, liczników, ziarna, ekranu ładowania. Polskie „sierotki” (i, w, z…) sklejane twardą spacją.
+Styl (v4, 28.09, po „bardziej zaawansowane, techniczne SEO, lepsza szata graficzna, atrakcyjna czcionka”):
+- **Font Archivo** (zmienna szerokość i grubość) — nagłówki rozciągnięte do 116%, echo rozstrzelonego logo EXEVER; tekst w normalnej szerokości.
+  Jeden plik zmienny przycięty do polskich znaków: `fonts/archivo-latin.woff2` (47 KB) + `archivo-pl.woff2` (7 KB). Wcześniej 8 plików Hanken.
+- **Nowy pierwszy ekran:** tekst po lewej, po prawej mozaika 3 ich zdjęć (dom / konstrukcja w hali / hala kurierska) — od razu widać obie
+  specjalności. Pod spodem drewniany pasek usług (4 linki do podstron i kotwic).
+- Karty „01 / 02” dla dwóch ścieżek, karty instalacji z drewnianą krawędzią, kroki budowy jako oś czasu z kółkami, opinie w kartach,
+  podstrony z nagłówkiem tekst + zdjęcie (zamiast ciemnego pasa i osobnego zdjęcia pod nim), filtry realizacji jako „pigułki”.
+- Łagodne pojawianie się sekcji przy przewijaniu (wyłączone przy `prefers-reduced-motion`). Bez mono, ziarna, liczników, loadera.
+- Grafit (#171715) + drewno (#c98a45). Polskie „sierotki” sklejane twardą spacją (poza `<title>`).
 
-## Techniczne SEO
+## Techniczne SEO (v4)
 
-- Na każdej podstronie: `title`, `description`, `canonical`, Open Graph (`img/og.jpg`, `img/og-instalacje.jpg`), JSON-LD
-  (`HomeAndConstructionBusiness` z NIP/KRS/REGON, oddziałem i osobami; `BreadcrumbList`; `Service`; `FAQPage`).
-- Fonty lokalne, LCP z `preload` + `fetchpriority`, `srcset` 720/1400/pełny, `width`/`height`, `loading="lazy"`.
-- `sitemap.xml` (7 adresów), `robots.txt`, `404.html`, favicon, polityka prywatności, dolny pasek „Zadzwoń / Zapytaj o wycenę” na telefonie.
+- **Kontrola:** `python _src/seo_check.py` — długość title/description, jeden h1, hierarchia nagłówków, canonical, OG, poprawność
+  JSON-LD, alt + width/height obrazów, martwe linki i kotwice, duplikaty, pliki z sitemapy. Teraz: „OK – 7 stron, bez uwag”.
+- **JSON-LD na każdej stronie jako jeden `@graph` z `@id`:** `HomeAndConstructionBusiness` (NIP/KRS/REGON, adres, geo, oddział, osoby,
+  2× `contactPoint`, `sameAs` Oferteo, `hasMap`, `knowsAbout`, `areaServed`, katalog usług z linkami) + `WebSite` + strona
+  (`WebPage` / `AboutPage` / `ContactPage` / `CollectionPage`) z `breadcrumb`, `primaryImageOfPage`, `dateModified`.
+  Podstrony: `BreadcrumbList`, `Service` z katalogiem (dom: 10 etapów budowy; instalacje: 3 usługi z kotwicami), `FAQPage`,
+  `ImageGallery` z 15 `ImageObject` (autor i właściciel praw = EXEVER).
+- **Mapa witryny ze zdjęciami** (`image:image`, każde zdjęcie w pełnej rozdzielczości), `lastmod`, `robots.txt` (blokuje `/_src/`), `llms.txt`.
+- W `<head>`: `hreflang` pl + x-default, Twitter Cards, `og:image:type`, `max-image-preview:large`, meta geo (Ustka), `referrer`.
+- **Wydajność:** cały CSS wklejony zminifikowany do `<head>` (zero blokujących żądań), preload jednego fontu i zdjęcia LCP z `fetchpriority`,
+  zapasowy font z `size-adjust` (mniejszy CLS), `srcset`/`sizes` dopasowane do nowego układu, `width`/`height`, `loading="lazy"`.
+- Kotwice `#elektryczne`, `#sanitarne`, `#teletechnika` na /instalacje/ — linkowane z paska usług i stopki.
 - Licznik otwarć dema (`demo_views`) — koniec `assets/app.js`, 1:1 z mk-bau (`_src/licznik.js`).
+- `404.html`, favicon, manifest, polityka prywatności, dolny pasek „Zadzwoń / Zapytaj o wycenę” na telefonie.
 - **DEMO ma `noindex`.** Przy wdrożeniu: usunąć `noindex`, podmienić `https://impulseo-pl.github.io/exever/` na domenę
-  (stała `BASE` w build.py), w 404 ścieżki `/exever/` na `/`, podpiąć formularz, 301 ze starych adresów WordPressa
-  (`/o-nas/`→`/o-firmie/`, `/uslugi/`→`/domy-szkieletowe/`, `/technologia/`→`/domy-szkieletowe/#sciana`).
+  (stała `BASE` w build.py i seo_check.py), w 404 ścieżki `/exever/` na `/`, podpiąć formularz, 301 ze starych adresów WordPressa
+  (`/o-nas/`→`/o-firmie/`, `/uslugi/`→`/domy-szkieletowe/`, `/technologia/`→`/domy-szkieletowe/#sciana`), zgłosić sitemapę w Search Console,
+  założyć/uzupełnić Profil Firmy w Google tymi samymi danymi (NAP 1:1 ze stroną).
 
 ## Skąd są fakty (zero zmyślonych liczb)
 

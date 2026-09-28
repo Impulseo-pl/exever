@@ -59,26 +59,61 @@ ORG = {
     "address": {"@type": "PostalAddress", "streetAddress": "ul. Grunwaldzka 18", "postalCode": "76-270",
                 "addressLocality": "Ustka", "addressRegion": "pomorskie", "addressCountry": "PL"},
     "geo": {"@type": "GeoCoordinates", "latitude": 54.5804384, "longitude": 16.8703415},
-    "department": {"@type": "HomeAndConstructionBusiness", "name": "EXEVER – oddział Koszalin",
+    "department": {"@type": "HomeAndConstructionBusiness", "name": "EXEVER – oddział Koszalin", "telephone": TEL1H,
                    "address": {"@type": "PostalAddress", "streetAddress": "ul. Przemysłowa 6c",
                                "addressLocality": "Koszalin", "addressRegion": "zachodniopomorskie", "addressCountry": "PL"}},
-    "areaServed": {"@type": "Country", "name": "Polska"},
+    "hasMap": "https://www.google.com/maps/search/?api=1&query=EXEVER+Grunwaldzka+18+Ustka",
+    "sameAs": ["https://www.oferteo.pl/exever-spolka-z-ograniczona-odpowiedzialnoscia/firma/4053523"],
+    "contactPoint": [{"@type": "ContactPoint", "telephone": TEL1H, "email": MAIL, "contactType": "customer service",
+                      "areaServed": "PL", "availableLanguage": "pl"},
+                     {"@type": "ContactPoint", "telephone": TEL2H, "contactType": "sales", "areaServed": "PL", "availableLanguage": "pl"}],
+    "knowsAbout": ["domy szkieletowe", "domy kanadyjskie", "konstrukcje drewniane", "instalacje elektryczne",
+                   "instalacje odgromowe", "fotowoltaika", "instalacje wodno-kanalizacyjne", "instalacje grzewcze",
+                   "kotłownie gazowe", "kotłownie na pellet", "pompy ciepła", "instalacje teletechniczne", "automatyka budynkowa"],
+    "areaServed": [{"@type": "Country", "name": "Polska"},
+                   {"@type": "AdministrativeArea", "name": "województwo pomorskie"},
+                   {"@type": "AdministrativeArea", "name": "województwo zachodniopomorskie"}],
     "employee": [{"@type": "Person", "name": "Krzysztof Kowalski", "jobTitle": "Prezes zarządu, project manager"},
                  {"@type": "Person", "name": "Damian Michalik", "jobTitle": "Project manager"}],
     "hasOfferCatalog": {"@type": "OfferCatalog", "name": "Usługi", "itemListElement": [
-        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": n}} for n in [
-            "Domy szkieletowe z drewna pod klucz", "Instalacje elektryczne", "Instalacje fotowoltaiczne",
-            "Instalacje sanitarne i grzewcze", "Kotłownie gazowe i na pellet", "Pompy ciepła",
-            "Instalacje teletechniczne i monitoring", "Automatyka budynkowa"]]}
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": n, "url": BASE + u}} for n, u in [
+            ("Domy szkieletowe z drewna pod klucz", "domy-szkieletowe/"), ("Instalacje elektryczne", "instalacje/#elektryczne"),
+            ("Instalacje fotowoltaiczne", "instalacje/#elektryczne"), ("Instalacje sanitarne i grzewcze", "instalacje/#sanitarne"),
+            ("Kotłownie gazowe i na pellet", "instalacje/#sanitarne"), ("Pompy ciepła", "instalacje/#sanitarne"),
+            ("Instalacje teletechniczne i monitoring", "instalacje/#teletechnika"), ("Automatyka budynkowa", "instalacje/#teletechnika")]]}
 }
+SITE = {"@type": "WebSite", "@id": BASE + "#witryna", "url": BASE, "name": "EXEVER", "alternateName": "EXEVER sp. z o.o.",
+        "inLanguage": "pl-PL", "publisher": {"@id": BASE + "#firma"}}
+ORG_REF = {"@id": BASE + "#firma"}
 
 def crumbs_ld(items):
-    return {"@type": "BreadcrumbList", "itemListElement": [
+    return {"@type": "BreadcrumbList", "@id": BASE + items[-1][0] + "#okruszki", "itemListElement": [
         {"@type": "ListItem", "position": i + 1, "name": n, "item": BASE + u} for i, (u, n) in enumerate(items)]}
 
-def head(p, path, title, desc, og='og.jpg', ogalt='Dom szkieletowy EXEVER z elewacją z desek', ld=None, preload=None):
-    graph = ld or []
-    ldj = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, indent=1)
+TODAY = '2026-09-28'
+_CSS = None
+def css(p):
+    """Cały CSS wklejony do <head> (zminifikowany) – zero blokującego żądania, ścieżki fontów względem strony."""
+    global _CSS
+    if _CSS is None:
+        c = open(os.path.join(ROOT, 'assets', 'styles.css'), encoding='utf-8').read()
+        c = re.sub(r'/\*.*?\*/', '', c, flags=re.S)
+        c = re.sub(r'\s+', ' ', c)
+        c = re.sub(r'\s*([{};,>])\s*', r'\1', c).replace(';}', '}')
+        _CSS = c.strip()
+    return _CSS.replace('url(../fonts/', f'url({p}fonts/')
+
+def head(p, path, title, desc, og='og.jpg', ogalt='Dom szkieletowy EXEVER z elewacją z desek', ld=None, preload=None,
+         ptype='WebPage', name=None, img=None):
+    graph = [ORG, SITE] + [x for x in (ld or []) if x is not ORG]
+    page = {"@type": ptype, "@id": BASE + path + "#strona", "url": BASE + path, "name": title, "description": desc,
+            "inLanguage": "pl-PL", "isPartOf": {"@id": BASE + "#witryna"}, "about": {"@id": BASE + "#firma"},
+            "dateModified": TODAY,
+            "primaryImageOfPage": {"@type": "ImageObject", "url": BASE + "img/" + (full(img) if img else og)}}
+    if path:
+        page["breadcrumb"] = {"@id": BASE + path + "#okruszki"}
+    graph.insert(0, page)
+    ldj = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(',', ':'))
     pre = ''
     if preload:
         v = variants(preload[0])
@@ -92,10 +127,18 @@ def head(p, path, title, desc, og='og.jpg', ogalt='Dom szkieletowy EXEVER z elew
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <!-- DEMO: przy wdrożeniu usunąć noindex i podmienić adresy na domenę klienta -->
-<meta name="robots" content="noindex, follow">
+<meta name="robots" content="noindex, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="{BASE}{path}">
-<meta name="theme-color" content="#1a1a18">
+<link rel="alternate" hreflang="pl" href="{BASE}{path}">
+<link rel="alternate" hreflang="x-default" href="{BASE}{path}">
+<meta name="theme-color" content="#171715">
+<meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="geo.region" content="PL-22">
+<meta name="geo.placename" content="Ustka">
+<meta name="geo.position" content="54.5804384;16.8703415">
+<meta name="ICBM" content="54.5804384, 16.8703415">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pl_PL">
 <meta property="og:site_name" content="EXEVER">
@@ -103,19 +146,23 @@ def head(p, path, title, desc, og='og.jpg', ogalt='Dom szkieletowy EXEVER z elew
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{BASE}{path}">
 <meta property="og:image" content="{BASE}img/{og}">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="{ogalt}">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{title}">
+<meta name="twitter:description" content="{desc}">
+<meta name="twitter:image" content="{BASE}img/{og}">
+<meta name="twitter:image:alt" content="{ogalt}">
 <link rel="icon" href="{p}favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{p}apple-touch-icon.png">
 <link rel="manifest" href="{p}site.webmanifest">
-<link rel="preload" href="{p}fonts/hanken-grotesk-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{p}fonts/hanken-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-{pre}<link rel="stylesheet" href="{p}assets/styles.css">
-<script type="application/ld+json">
-{ldj}
-</script>
+<link rel="sitemap" type="application/xml" href="{p}sitemap.xml">
+<link rel="preload" href="{p}fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+{pre}<script>document.documentElement.className='js'</script>
+<style>{css(p)}</style>
+<script type="application/ld+json">{ldj}</script>
 </head>
 <body>
 <a class="skip" href="#tresc">Przejdź do treści</a>
@@ -140,7 +187,7 @@ def header(p, cur):
 def footer(p):
     return f'''</main>
 
-<footer class="site-foot">
+<footer class="site-foot" itemscope itemtype="https://schema.org/WPFooter">
   <div class="wrap">
     <div class="foot-grid">
       <div>
@@ -151,8 +198,9 @@ def footer(p):
         <h3>Oferta</h3>
         <ul>
           <li><a href="{p}domy-szkieletowe/">Domy szkieletowe</a></li>
-          <li><a href="{p}instalacje/">Instalacje elektryczne</a></li>
-          <li><a href="{p}instalacje/">Instalacje sanitarne i grzewcze</a></li>
+          <li><a href="{p}instalacje/#elektryczne">Instalacje elektryczne</a></li>
+          <li><a href="{p}instalacje/#sanitarne">Instalacje sanitarne i grzewcze</a></li>
+          <li><a href="{p}instalacje/#teletechnika">Teletechnika i automatyka</a></li>
           <li><a href="{p}realizacje/">Realizacje</a></li>
         </ul>
       </div>
@@ -190,9 +238,28 @@ def footer(p):
 def crumbs(p, name):
     return f'<nav class="crumbs" aria-label="Jesteś tutaj"><ol><li><a href="{p}">EXEVER</a></li><li aria-current="page">{name}</li></ol></nav>'
 
+def phero(p, name, h1, lead, actions='', img=None, alt='', kicker=''):
+    """Nagłówek podstrony: ciemny pas, tekst + zdjęcie (LCP)."""
+    fig = f'''
+    <figure class="phero-img">{pic(p, img, alt, '(min-width: 961px) 600px, 100vw', lazy=False, high=True)}</figure>''' if img else ''
+    k = f'<p class="kicker">{kicker}</p>' if kicker else ''
+    a = f'<div class="actions">{actions}</div>' if actions else ''
+    return f'''<section class="phero{'' if img else ' solo'}">
+  <div class="wrap">
+    {crumbs(p, name)}
+    <div class="phero-in">
+      <div>
+        {k}<h1>{h1}</h1>
+        <p class="lead">{lead}</p>
+        {a}
+      </div>{fig}
+    </div>
+  </div>
+</section>'''
+
 def cta(p, h='Masz działkę albo projekt? Porozmawiajmy.', t='Pierwsza konsultacja jest bezpłatna. Doradzimy, zanim cokolwiek podpiszesz.', temat='dom'):
     return f'''<section class="cta">
-  {pic(p, 'dom-narozny', '', '100vw', cls='cta-bg')}
+  {pic(p, 'dom-plac', '', '100vw', cls='cta-bg')}
   <div class="wrap">
     <div>
       <h2>{h}</h2>
@@ -299,20 +366,28 @@ def gallery(p, only=None, skip=()):
     for n, k, c, d in GAL:
         if only and k != only: continue
         if n in skip: continue
-        items.append(f'''      <a href="{p}img/{full(n)}" data-k="{k}" data-cap="{c} – {d}">{pic(p, n, c, '(min-width: 961px) 380px, (min-width: 681px) 50vw, 100vw')}<span class="gcap">{c}<small>{d}</small></span></a>''')
+        items.append(f'''      <a href="{p}img/{full(n)}" data-rv data-k="{k}" data-cap="{c} – {d}"><span class="gimg">{pic(p, n, c + ' – ' + d, '(min-width: 961px) 400px, (min-width: 681px) 50vw, 100vw')}</span><span class="gcap">{c}<small>{d}</small></span></a>''')
     return '    <div class="gallery">\n' + '\n'.join(items) + '\n    </div>'
 
 def sierotki(html):
     # jednoliterowe spójniki i przyimki nie zostają na końcu wiersza (poza <script> i znacznikami)
-    parts = re.split(r'(<script.*?</script>|<[^>]+>)', html, flags=re.S)
+    parts = re.split(r'(<script.*?</script>|<style>.*?</style>|<title>.*?</title>|<[^>]+>)', html, flags=re.S)
     for i, s in enumerate(parts):
         if s.startswith('<'):
             continue
         parts[i] = re.sub(r'(?<![\w&;])([aiouwzAIOUWZ]) ', r'\1&nbsp;', s)
     return ''.join(parts)
 
+PAGE_IMGS = {}
 def write(path, html):
     html = sierotki(html)
+    seen = []
+    for m in re.finditer(r'<img [^>]*?srcset="([^"]+)"[^>]*?alt="([^"]*)"', html):
+        last = m.group(1).split(',')[-1].strip().split(' ')[0]
+        u = BASE + re.sub(r'^(\.\./)+', '', last)
+        if m.group(2) and u not in [x[0] for x in seen]:
+            seen.append((u, m.group(2)))
+    PAGE_IMGS[path] = seen
     fp = os.path.join(ROOT, path, 'index.html') if path else os.path.join(ROOT, 'index.html')
     os.makedirs(os.path.dirname(fp), exist_ok=True)
     with open(fp, 'w', encoding='utf-8', newline='\n') as f:
@@ -324,40 +399,53 @@ def write(path, html):
 # =====================================================================
 def home():
     p = ''
-    h = head(p, '', 'EXEVER Ustka – domy szkieletowe z drewna i instalacje',
+    h = head(p, '', 'Domy szkieletowe i instalacje – EXEVER Ustka, Koszalin',
              'EXEVER sp. z o.o. z Ustki: domy szkieletowe z drewna od projektu do odbioru oraz instalacje elektryczne, sanitarne i grzewcze. Od 2010 roku. Tel. 601 681 185.',
-             ld=[ORG, {"@type": "WebSite", "@id": BASE + "#strona", "url": BASE, "name": "EXEVER", "inLanguage": "pl-PL",
-                       "publisher": {"@id": BASE + "#firma"}}],
-             preload=('dom-dlugi', '100vw'))
+             ld=[], preload=('dom-narozny', '(min-width: 961px) 34vw, 100vw'), img='dom-narozny')
     body = f'''
 <section class="hero">
-  <div class="hero-txt">
-    <h1>Budujemy domy szkieletowe i robimy w nich instalacje</h1>
-    <p class="lead">Prowadzimy budowę od rozmowy o działce i projekcie, przez formalności w urzędzie, po odbiór techniczny z dokumentacją. Instalacje elektryczne, sanitarne i grzewcze wykonujemy sami – od 2010 roku, także w halach i budynkach wielorodzinnych.</p>
-    <div class="actions">
-      <a class="btn btn-main" href="kontakt/?temat=dom">Zapytaj o dom</a>
-      <a class="btn btn-sec" href="realizacje/">Zobacz realizacje</a>
+  <div class="wrap hero-in">
+    <div class="hero-txt">
+      <p class="kicker">Ustka · Koszalin · od 2010 roku</p>
+      <h1>Budujemy domy szkieletowe. <span class="accent">Instalacje robimy w nich sami.</span></h1>
+      <p class="lead">Prowadzimy budowę od rozmowy o działce i projekcie, przez formalności w urzędzie, po odbiór techniczny z dokumentacją. Instalacje elektryczne, sanitarne i grzewcze wykonujemy też w halach i budynkach wielorodzinnych.</p>
+      <div class="actions">
+        <a class="btn btn-main" href="kontakt/?temat=dom">Zapytaj o dom</a>
+        <a class="btn btn-sec" href="realizacje/">Zobacz realizacje</a>
+      </div>
+      <div class="hero-meta">
+        <div><b>Od 2010 roku</b>w rejestrze KRS</div>
+        <div><b>Ocena 5,0</b>opinie na Oferteo.pl</div>
+        <div><b><a href="tel:{TEL1H}">{TEL1}</a></b>{MAIL}</div>
+      </div>
     </div>
-    <div class="hero-meta">
-      <div><b>Od 2010 roku</b>w rejestrze KRS</div>
-      <div><b>Ustka i Koszalin</b>siedziba i oddział</div>
-      <div><b><a href="tel:{TEL1H}" style="color:inherit;text-decoration:none">{TEL1}</a></b>{MAIL}</div>
+    <div class="hero-pics">
+      <figure>{pic(p, 'dom-narozny', 'Dom szkieletowy EXEVER z elewacją z pionowych desek i roletami', '(min-width: 961px) 34vw, 100vw', lazy=False, high=True)}<figcaption>Dom szkieletowy EXEVER<small>elewacja z desek świerkowych</small></figcaption></figure>
+      <figure>{pic(p, 'szkielet-hala', 'Konstrukcja szkieletowa ścian i dachu składana w hali', '(min-width: 961px) 26vw, 50vw', lazy=False)}<figcaption>Konstrukcja składana w hali</figcaption></figure>
+      <figure>{pic(p, 'hala-kurierska', 'Hala kurierska – instalacje elektryczne wykonane przez EXEVER', '(min-width: 961px) 26vw, 50vw', lazy=False)}<figcaption>Instalacje w hali kurierskiej</figcaption></figure>
     </div>
-  </div>
-  <div class="hero-img">
-    {pic(p, 'dom-dlugi', 'Dom szkieletowy EXEVER z przeszkleniami i elewacją z desek', '100vw', lazy=False, high=True)}
   </div>
 </section>
+<nav class="svc" aria-label="Oferta EXEVER">
+  <div class="wrap">
+    <ul>
+      <li><a href="domy-szkieletowe/">Domy szkieletowe pod klucz</a></li>
+      <li><a href="instalacje/#elektryczne">Instalacje elektryczne i fotowoltaika</a></li>
+      <li><a href="instalacje/#sanitarne">Wod-kan, ogrzewanie, pompy ciepła</a></li>
+      <li><a href="instalacje/#teletechnika">Teletechnika i automatyka</a></li>
+    </ul>
+  </div>
+</nav>
 
 <section class="sec">
   <div class="wrap">
-    <div class="sec-head">
+    <div class="sec-head" data-rv>
       <h2>Cały dom albo same instalacje</h2>
       <p>Możemy postawić dom od fundamentów po wykończenie. Możemy też wykonać tylko instalacje w budynku, który już stoi albo właśnie powstaje.</p>
     </div>
     <div class="doors">
-      <a class="door" href="domy-szkieletowe/">
-        <div class="door-img">{pic(p, 'dom-narozny', 'Dom szkieletowy z elewacją z pionowych desek', '(min-width: 961px) 586px, 100vw')}</div>
+      <a class="door" data-rv href="domy-szkieletowe/">
+        <div class="door-img">{pic(p, 'dom-dlugi', 'Dom szkieletowy z przeszkleniami od podłogi i elewacją z desek', '(min-width: 961px) 600px, 100vw')}<span class="door-num">01</span></div>
         <div class="door-body">
           <h3>Dom szkieletowy pod klucz</h3>
           <p>Konstrukcja z drewna, wełna mineralna w ścianach, dachu i podłodze, wykończenie w standardzie, który wybierzesz.</p>
@@ -370,8 +458,8 @@ def home():
           <span class="more">Domy szkieletowe</span>
         </div>
       </a>
-      <a class="door" href="instalacje/">
-        <div class="door-img">{pic(p, 'hala-przenosniki', 'Hala magazynowa z linią przenośników – realizacja instalacji EXEVER', '(min-width: 961px) 586px, 100vw')}</div>
+      <a class="door" data-rv href="instalacje/">
+        <div class="door-img">{pic(p, 'hala-przenosniki', 'Hala magazynowa z linią przenośników – realizacja instalacji EXEVER', '(min-width: 961px) 600px, 100vw')}<span class="door-num">02</span></div>
         <div class="door-body">
           <h3>Instalacje w budynkach</h3>
           <p>Dla firm wykonawczych, inwestorów i klientów indywidualnych – w domach, halach i budynkach wielorodzinnych.</p>
@@ -418,7 +506,7 @@ def home():
 <section class="sec">
   <div class="wrap">
     <div class="sec-head-row">
-      <div class="sec-head">
+      <div class="sec-head" data-rv>
         <div class="kicker">Instalacje</div>
         <h2>Od instalacji zaczynaliśmy w 2010 roku</h2>
         <p>Dziś robimy je w domach, halach i budynkach wielorodzinnych. Pracujemy dla firm wykonawczych, inwestorów i klientów indywidualnych na terenie całej Polski.</p>
@@ -440,7 +528,7 @@ def home():
       </div>
     </div>
     <div class="proj">
-      <figure>{pic(p, 'hala-kurierska', 'Hala kurierska – instalacje elektryczne EXEVER', '(min-width: 961px) 480px, 100vw')}<figcaption>Instalacje elektryczne w hali kurierskiej</figcaption></figure>
+      <figure data-rv>{pic(p, 'hala-kurierska', 'Hala kurierska – instalacje elektryczne EXEVER', '(min-width: 961px) 480px, 100vw')}<figcaption>Instalacje elektryczne w hali kurierskiej</figcaption></figure>
       <figure>{pic(p, 'rozdzielnia', 'Rozdzielnia elektryczna wykonana przez EXEVER', '(min-width: 961px) 340px, 50vw')}<figcaption>Rozdzielnia elektryczna</figcaption></figure>
       <figure>{pic(p, 'resort', 'Nadmorski resort – instalacje elektryczne EXEVER', '(min-width: 961px) 340px, 50vw')}<figcaption>Instalacje elektryczne w nadmorskim resorcie</figcaption></figure>
       <figure>{pic(p, 'kotlownia', 'Kotłownia z instalacją grzewczą w Ustce', '(min-width: 961px) 340px, 50vw')}<figcaption>Kotłownia i instalacja grzewcza, Ustka</figcaption></figure>
@@ -452,7 +540,7 @@ def home():
 
 <section class="sec sec-dark">
   <div class="wrap">
-    <div class="sec-head">
+    <div class="sec-head" data-rv>
       <h2>Jak wygląda budowa domu z nami</h2>
       <p>Prowadzimy całość, także część papierową. Na każdym etapie wiesz, co się dzieje i co będzie dalej.</p>
     </div>
@@ -462,7 +550,7 @@ def home():
 
 <section class="sec sec-sand">
   <div class="wrap">
-    <div class="sec-head">
+    <div class="sec-head" data-rv>
       <h2>Opinie klientów</h2>
       <p>Ocena 5,0 na 5 w serwisie Oferteo.pl.</p>
     </div>
@@ -488,26 +576,23 @@ def domy():
     p = '../'
     path = 'domy-szkieletowe/'
     ld = [crumbs_ld([('', 'EXEVER'), (path, 'Domy szkieletowe')]),
-          {"@type": "Service", "name": "Domy szkieletowe z drewna pod klucz", "serviceType": "Budowa domów szkieletowych",
-           "provider": {"@id": BASE + "#firma"}, "areaServed": {"@type": "Country", "name": "Polska"}, "url": BASE + path},
+          {"@type": "Service", "@id": BASE + path + "#usluga", "name": "Domy szkieletowe z drewna pod klucz",
+           "alternateName": "Domy kanadyjskie", "serviceType": "Budowa domów szkieletowych",
+           "description": "Budowa domu szkieletowego od projektu i formalności, przez fundamenty, konstrukcję, instalacje i ocieplenie, po wykończenie i odbiór techniczny z dokumentacją.",
+           "provider": ORG_REF, "areaServed": {"@type": "Country", "name": "Polska"}, "url": BASE + path,
+           "image": BASE + "img/" + full('dom-dlugi'),
+           "hasOfferCatalog": {"@type": "OfferCatalog", "name": "Zakres budowy", "itemListElement": [
+               {"@type": "Offer", "itemOffered": {"@type": "Service", "name": a, "description": b}} for a, b in STEPS_A + STEPS_B]}},
           {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in FAQ]}]
     h = head(p, path, 'Domy szkieletowe z drewna pod klucz – EXEVER Ustka',
-             'Domy szkieletowe (kanadyjskie) od projektu do odbioru: fundamenty, konstrukcja, instalacje, ocieplenie i wykończenie. 150 mm wełny w ścianach, potrójne szyby. EXEVER Ustka.',
-             ld=ld, preload=('dom-dlugi', '100vw'))
+             'Domy szkieletowe (kanadyjskie) pod klucz: projekt, formalności, fundamenty, konstrukcja, instalacje i wykończenie. 150 mm wełny w ścianach. EXEVER Ustka.',
+             ld=ld, preload=('dom-dlugi', '(min-width: 961px) 600px, 100vw'), img='dom-dlugi')
     faq = '\n'.join(f'      <details><summary>{q}</summary><p>{a}</p></details>' for q, a in FAQ)
     body = f'''
-<section class="phero">
-  <div class="wrap">
-    {crumbs(p, 'Domy szkieletowe')}
-    <h1>Domy szkieletowe z drewna – od projektu do odbioru kluczy</h1>
-    <p class="lead">Dom szkieletowy, nazywany też kanadyjskim, ma konstrukcję z drewna wypełnioną izolacją. Budujemy go od fundamentów po wykończenie i sami wykonujemy w nim wszystkie instalacje.</p>
-    <div class="actions">
-      <a class="btn btn-main" href="../kontakt/?temat=dom">Zapytaj o dom</a>
-      <a class="btn btn-sec" href="#przebieg">Jak przebiega budowa</a>
-    </div>
-  </div>
-</section>
-<div class="wide-img">{pic(p, 'dom-dlugi', 'Dom szkieletowy EXEVER z przeszkleniami od podłogi', '100vw', lazy=False, high=True)}</div>
+{phero(p, 'Domy szkieletowe', 'Domy szkieletowe z drewna – od projektu do odbioru kluczy',
+        'Dom szkieletowy, nazywany też kanadyjskim, ma konstrukcję z drewna wypełnioną izolacją. Budujemy go od fundamentów po wykończenie i sami wykonujemy w nim wszystkie instalacje.',
+        '<a class="btn btn-main" href="../kontakt/?temat=dom">Zapytaj o dom</a><a class="btn btn-sec" href="#przebieg">Jak przebiega budowa</a>',
+        'dom-dlugi', 'Dom szkieletowy EXEVER z przeszkleniami od podłogi', 'Domy szkieletowe')}
 
 <section class="sec">
   <div class="wrap">
@@ -532,7 +617,7 @@ def domy():
 
 <section class="sec sec-sand" id="sciana">
   <div class="wrap">
-    <div class="sec-head">
+    <div class="sec-head" data-rv>
       <h2>Co jest w ścianie</h2>
       <p>O jakości domu szkieletowego decyduje to, czego po wykończeniu nie widać. Najedź na numer albo na warstwę, żeby zobaczyć, gdzie leży.</p>
     </div>
@@ -566,7 +651,7 @@ def domy():
 <section class="sec sec-sand">
   <div class="wrap">
     <div class="sec-head-row">
-      <div class="sec-head"><h2>Nasze domy</h2><p>Od szkieletu w hali po gotową elewację.</p></div>
+      <div class="sec-head" data-rv><h2>Nasze domy</h2><p>Od szkieletu w hali po gotową elewację.</p></div>
       <a class="more" href="../realizacje/">Wszystkie realizacje</a>
     </div>
 {gallery(p, 'domy', skip=('welna', 'osb'))}
@@ -575,7 +660,7 @@ def domy():
 
 <section class="sec sec-dark" id="przebieg">
   <div class="wrap">
-    <div class="sec-head">
+    <div class="sec-head" data-rv>
       <h2>Przebieg budowy w 10 krokach</h2>
       <p>Od pierwszej rozmowy do przekazania kluczy prowadzi Cię jedna firma.</p>
     </div>
@@ -585,7 +670,7 @@ def domy():
 
 <section class="sec sec-sand">
   <div class="wrap">
-    <div class="sec-head"><h2>Najczęstsze pytania</h2></div>
+    <div class="sec-head" data-rv><h2>Najczęstsze pytania</h2></div>
     <div class="faq">
 {faq}
     </div>
@@ -598,42 +683,43 @@ def domy():
 # =====================================================================
 # INSTALACJE
 # =====================================================================
+INST_LD = [
+    ('elektryczne', 'Instalacje elektryczne', ['Instalacje elektryczne w domach, halach i budynkach usługowych', 'Rozdzielnie elektryczne', 'Montaż oświetlenia', 'Instalacje odgromowe', 'Instalacje fotowoltaiczne']),
+    ('sanitarne', 'Instalacje sanitarne i grzewcze', ['Instalacje wodno-kanalizacyjne', 'Instalacje grzewcze', 'Kotłownie gazowe i na pellet', 'Pompy ciepła', 'Odnawialne źródła energii']),
+    ('teletechnika', 'Teletechnika i automatyka', ['Instalacje teletechniczne', 'Systemy monitoringu', 'Automatyka budynkowa', 'Zdalne sterowanie urządzeniami w domu']),
+]
 def instalacje():
     p = '../'
     path = 'instalacje/'
     ld = [crumbs_ld([('', 'EXEVER'), (path, 'Instalacje')]),
-          {"@type": "Service", "name": "Instalacje elektryczne, sanitarne i grzewcze", "serviceType": "Instalacje budowlane",
-           "provider": {"@id": BASE + "#firma"}, "areaServed": {"@type": "Country", "name": "Polska"}, "url": BASE + path}]
+          *[{"@type": "Service", "@id": BASE + path + "#" + i, "name": n, "serviceType": n, "provider": ORG_REF,
+            "areaServed": {"@type": "Country", "name": "Polska"}, "url": BASE + path + "#" + i,
+            "audience": {"@type": "Audience", "audienceType": "firmy wykonawcze, inwestorzy, klienci indywidualni"},
+            "hasOfferCatalog": {"@type": "OfferCatalog", "name": n, "itemListElement": [
+                {"@type": "Offer", "itemOffered": {"@type": "Service", "name": x}} for x in xs]}}
+            for i, n, xs in INST_LD]]
     h = head(p, path, 'Instalacje elektryczne, sanitarne i grzewcze – EXEVER Ustka',
-             'Instalacje elektryczne, odgromowe, fotowoltaika, wod-kan, instalacje grzewcze, kotłownie gazowe i na pellet, pompy ciepła, teletechnika. Dla firm i klientów indywidualnych. EXEVER, od 2010 roku.',
-             og='og-instalacje.jpg', ogalt='Hala kurierska – instalacje elektryczne EXEVER', ld=ld, preload=('hala-przenosniki', '100vw'))
+             'Instalacje elektryczne, fotowoltaika, wod-kan, ogrzewanie, kotłownie gazowe i na pellet, pompy ciepła, teletechnika. Dla firm i domów. EXEVER, od 2010 roku.',
+             og='og-instalacje.jpg', ogalt='Hala kurierska – instalacje elektryczne EXEVER', ld=ld, preload=('hala-przenosniki', '(min-width: 961px) 600px, 100vw'), img='hala-przenosniki')
     body = f'''
-<section class="phero">
-  <div class="wrap">
-    {crumbs(p, 'Instalacje')}
-    <h1>Instalacje elektryczne, sanitarne i grzewcze</h1>
-    <p class="lead">Od tego zaczęliśmy w 2010 roku. Wykonujemy instalacje w domach, halach i budynkach wielorodzinnych – dla firm wykonawczych, inwestorów i klientów indywidualnych, na terenie całej Polski.</p>
-    <div class="actions">
-      <a class="btn btn-main" href="../kontakt/?temat=instalacja">Zapytaj o instalację</a>
-      <a class="btn btn-sec" href="tel:{TEL1H}">Zadzwoń: {TEL1}</a>
-    </div>
-  </div>
-</section>
-<div class="wide-img">{pic(p, 'hala-przenosniki', 'Hala magazynowa z linią przenośników – realizacja EXEVER', '100vw', lazy=False, high=True)}</div>
+{phero(p, 'Instalacje', 'Instalacje elektryczne, sanitarne i grzewcze',
+        'Od tego zaczęliśmy w 2010 roku. Wykonujemy instalacje w domach, halach i budynkach wielorodzinnych – dla firm wykonawczych, inwestorów i klientów indywidualnych, na terenie całej Polski.',
+        f'<a class="btn btn-main" href="../kontakt/?temat=instalacja">Zapytaj o instalację</a><a class="btn btn-sec" href="tel:{TEL1H}">Zadzwoń: {TEL1}</a>',
+        'hala-przenosniki', 'Hala magazynowa z linią przenośników – realizacja EXEVER', 'Instalacje')}
 
 <section class="sec">
   <div class="wrap">
-    <div class="sec-head"><h2>Zakres prac</h2></div>
+    <div class="sec-head" data-rv><h2>Zakres prac</h2></div>
     <div class="inst">
-      <div>
+      <div id="elektryczne">
         <h3>Elektryczne</h3>
         <ul><li>instalacje elektryczne w domach, halach i budynkach usługowych</li><li>rozdzielnie elektryczne</li><li>montaż oświetlenia</li><li>instalacje odgromowe</li><li>instalacje fotowoltaiczne</li></ul>
       </div>
-      <div>
+      <div id="sanitarne">
         <h3>Sanitarne i grzewcze</h3>
         <ul><li>instalacje wodno-kanalizacyjne</li><li>instalacje grzewcze</li><li>kotłownie gazowe i na pellet</li><li>pompy ciepła</li><li>odnawialne źródła energii</li></ul>
       </div>
-      <div>
+      <div id="teletechnika">
         <h3>Teletechnika i automatyka</h3>
         <ul><li>instalacje teletechniczne</li><li>systemy monitoringu</li><li>automatyka budynkowa</li><li>zdalne sterowanie urządzeniami w domu</li></ul>
       </div>
@@ -679,7 +765,7 @@ def instalacje():
 <section class="sec">
   <div class="wrap">
     <div class="sec-head-row">
-      <div class="sec-head"><h2>Realizacje instalacji</h2></div>
+      <div class="sec-head" data-rv><h2>Realizacje instalacji</h2></div>
       <a class="more" href="../realizacje/">Wszystkie realizacje</a>
     </div>
 {gallery(p, 'instalacje', skip=('hala-przenosniki',))}
@@ -697,15 +783,17 @@ def realizacje():
     path = 'realizacje/'
     h = head(p, path, 'Realizacje – domy szkieletowe i instalacje | EXEVER',
              'Zdjęcia domów szkieletowych EXEVER i realizacji instalacji: hala kurierska, nadmorski resort, kotłownie i budynki wielorodzinne w Ustce.',
-             ld=[crumbs_ld([('', 'EXEVER'), (path, 'Realizacje')])])
+             ld=[crumbs_ld([('', 'EXEVER'), (path, 'Realizacje')]),
+                 {"@type": "ImageGallery", "@id": BASE + path + "#galeria", "name": "Realizacje EXEVER", "url": BASE + path,
+                  "author": ORG_REF, "numberOfItems": len(GAL),
+                  "image": [{"@type": "ImageObject", "contentUrl": BASE + "img/" + full(n), "name": c, "caption": f"{c} – {d}",
+                             "creditText": "EXEVER sp. z o.o.", "copyrightHolder": ORG_REF, "creator": ORG_REF}
+                            for n, k, c, d in GAL]}],
+             ptype='CollectionPage', img='dom-dlugi')
     body = f'''
-<section class="phero">
-  <div class="wrap">
-    {crumbs(p, 'Realizacje')}
-    <h1>Realizacje</h1>
-    <p class="lead">Domy szkieletowe – od konstrukcji w hali po gotową elewację – i instalacje, które wykonaliśmy w halach, resortach i budynkach wielorodzinnych.</p>
-  </div>
-</section>
+{phero(p, 'Realizacje', 'Realizacje – domy szkieletowe i instalacje',
+        'Domy szkieletowe – od konstrukcji w hali po gotową elewację – i instalacje, które wykonaliśmy w halach, resortach i budynkach wielorodzinnych.',
+        kicker=f'{len(GAL)} zdjęć własnych realizacji')}
 <section class="sec" style="padding-top:48px">
   <div class="wrap">
     <div class="filters" role="group" aria-label="Pokaż">
@@ -726,16 +814,12 @@ def ofirmie():
     p = '../'
     path = 'o-firmie/'
     h = head(p, path, 'O firmie – EXEVER sp. z o.o., Ustka',
-             'EXEVER sp. z o.o. – firma z Ustki, w rejestrze KRS od 2010 roku. Instalacje elektryczne, sanitarne i grzewcze oraz domy szkieletowe z drewna. Oddział w Koszalinie.',
-             ld=[crumbs_ld([('', 'EXEVER'), (path, 'O firmie')]), ORG])
+             'EXEVER sp. z o.o. z Ustki, w KRS od 2010 roku: instalacje elektryczne, sanitarne i grzewcze oraz domy szkieletowe z drewna. Oddział w Koszalinie.',
+             ld=[crumbs_ld([('', 'EXEVER'), (path, 'O firmie')])], ptype='AboutPage', img='elewacja', preload=('elewacja', '(min-width: 961px) 600px, 100vw'))
     body = f'''
-<section class="phero">
-  <div class="wrap">
-    {crumbs(p, 'O firmie')}
-    <h1>EXEVER – firma z Ustki, od 2010 roku</h1>
-    <p class="lead">Zaczynaliśmy od instalacji elektrycznych i sanitarnych. Dziś budujemy też całe domy w konstrukcji szkieletowej – i instalacje wykonujemy w nich sami.</p>
-  </div>
-</section>
+{phero(p, 'O firmie', 'EXEVER – firma z Ustki, od 2010 roku',
+        'Zaczynaliśmy od instalacji elektrycznych i sanitarnych. Dziś budujemy też całe domy w konstrukcji szkieletowej – i instalacje wykonujemy w nich sami.',
+        img='elewacja', alt='Elewacja z desek domu szkieletowego EXEVER', kicker='O firmie')}
 
 <section class="sec">
   <div class="wrap">
@@ -782,7 +866,7 @@ def ofirmie():
 
 <section class="sec">
   <div class="wrap">
-    <div class="sec-head"><h2>Opinie klientów</h2><p>Ocena 5,0 na 5 w serwisie Oferteo.pl.</p></div>
+    <div class="sec-head" data-rv><h2>Opinie klientów</h2><p>Ocena 5,0 na 5 w serwisie Oferteo.pl.</p></div>
 {reviews()}
   </div>
 </section>
@@ -797,18 +881,14 @@ def kontakt():
     path = 'kontakt/'
     h = head(p, path, 'Kontakt – EXEVER Ustka i Koszalin, tel. 601 681 185',
              'Kontakt z EXEVER: tel. 601 681 185 lub 500 629 172, biuro@exever.pl. Siedziba ul. Grunwaldzka 18, 76-270 Ustka, oddział ul. Przemysłowa 6c, Koszalin.',
-             ld=[crumbs_ld([('', 'EXEVER'), (path, 'Kontakt')]), ORG])
+             ld=[crumbs_ld([('', 'EXEVER'), (path, 'Kontakt')])], ptype='ContactPage')
     body = f'''
-<section class="phero" style="padding-bottom:40px;border-bottom:0">
-  <div class="wrap">
-    {crumbs(p, 'Kontakt')}
-    <h1>Kontakt</h1>
-    <p class="lead">Zadzwoń albo napisz, czego potrzebujesz. Pierwsza konsultacja w sprawie domu jest bezpłatna.</p>
-  </div>
-</section>
+{phero(p, 'Kontakt', 'Kontakt',
+        'Zadzwoń albo napisz, czego potrzebujesz. Pierwsza konsultacja w sprawie domu jest bezpłatna.', kicker='Ustka · Koszalin')}
 <section class="sec" style="padding-top:64px">
   <div class="wrap contact">
     <div>
+      <h2 class="vh">Dane kontaktowe</h2>
       <a class="tel-big" href="tel:{TEL1H}">{TEL1}</a>
       <a class="tel-big" href="tel:{TEL2H}" style="margin-top:6px">{TEL2}</a>
       <p style="margin:14px 0 30px;font-size:19px"><a href="mailto:{MAIL}">{MAIL}</a></p>
@@ -864,7 +944,7 @@ def kontakt():
 def polityka():
     p = '../'
     path = 'polityka-prywatnosci/'
-    h = head(p, path, 'Polityka prywatności | EXEVER', 'Zasady przetwarzania danych osobowych przez EXEVER sp. z o.o., Ustka.',
+    h = head(p, path, 'Polityka prywatności | EXEVER', 'Zasady przetwarzania danych osobowych przez EXEVER sp. z o.o. z Ustki: administrator, cel, czas przechowywania, Twoje prawa i pliki cookies.',
              ld=[crumbs_ld([('', 'EXEVER'), (path, 'Polityka prywatności')])])
     body = f'''
 <section class="sec" style="padding-top:56px">
@@ -912,10 +992,34 @@ def extras():
 '''
     open(os.path.join(ROOT, '404.html'), 'w', encoding='utf-8', newline='\n').write(html)
     urls = ['', 'domy-szkieletowe/', 'instalacje/', 'realizacje/', 'o-firmie/', 'kontakt/', 'polityka-prywatnosci/']
-    sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + \
-         ''.join(f'  <url><loc>{BASE}{u}</loc><lastmod>2026-09-26</lastmod></url>\n' for u in urls) + '</urlset>\n'
+    def ent(u):
+        imgs = ''.join(f'\n    <image:image><image:loc>{i}</image:loc></image:image>' for i, _ in PAGE_IMGS.get(u, []))
+        return f'  <url>\n    <loc>{BASE}{u}</loc>\n    <lastmod>{TODAY}</lastmod>{imgs}\n  </url>\n'
+    sm = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+          'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n' + ''.join(ent(u) for u in urls) + '</urlset>\n')
     open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8', newline='\n').write(sm)
-    open(os.path.join(ROOT, 'robots.txt'), 'w', encoding='utf-8', newline='\n').write(f'User-agent: *\nAllow: /\nSitemap: {BASE}sitemap.xml\n')
+    open(os.path.join(ROOT, 'robots.txt'), 'w', encoding='utf-8', newline='\n').write(
+        f'User-agent: *\nAllow: /\nDisallow: /_src/\n\nSitemap: {BASE}sitemap.xml\n')
+    json.dump({"name": "EXEVER – domy szkieletowe i instalacje", "short_name": "EXEVER", "lang": "pl", "start_url": "./",
+               "icons": [{"src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png"},
+                         {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml"}],
+               "theme_color": "#171715", "background_color": "#faf8f4", "display": "browser"},
+              open(os.path.join(ROOT, 'site.webmanifest'), 'w', encoding='utf-8'), ensure_ascii=False)
+    llms = f'''# EXEVER sp. z o.o.
+
+> Firma z Ustki (oddział w Koszalinie), w KRS od 2010 roku. Buduje domy szkieletowe z drewna od projektu do odbioru i wykonuje instalacje elektryczne, sanitarne, grzewcze i teletechniczne w domach, halach i budynkach wielorodzinnych.
+
+Telefon: {TEL1}, {TEL2} · E-mail: {MAIL} · ul. Grunwaldzka 18, 76-270 Ustka · NIP 586 225 04 18 · KRS 0000349698
+
+## Strony
+
+- [Domy szkieletowe]({BASE}domy-szkieletowe/): technologia ściany, przebieg budowy w 10 krokach, pytania i odpowiedzi
+- [Instalacje]({BASE}instalacje/): elektryczne, odgromowe, fotowoltaika, wod-kan, grzewcze, kotłownie, pompy ciepła, teletechnika
+- [Realizacje]({BASE}realizacje/): zdjęcia domów i realizacji instalacji
+- [O firmie]({BASE}o-firmie/): historia, osoby, dane rejestrowe
+- [Kontakt]({BASE}kontakt/): telefony, adresy, formularz zapytania
+'''
+    open(os.path.join(ROOT, 'llms.txt'), 'w', encoding='utf-8', newline='\n').write(llms)
     KAT = 'https://www.exever.pl/wp-content/uploads/2025/07/Exever-katalog-proof_250625_105735_250630_203544-'
     OF = 'https://static.oferteo.pl/images/portfolio/4053523/orig/'
     src = {

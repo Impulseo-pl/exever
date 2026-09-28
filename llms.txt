@@ -1,0 +1,13 @@
+# EXEVER sp. z o.o.
+
+> Firma z Ustki (oddział w Koszalinie), w KRS od 2010 roku. Buduje domy szkieletowe z drewna od projektu do odbioru i wykonuje instalacje elektryczne, sanitarne, grzewcze i teletechniczne w domach, halach i budynkach wielorodzinnych.
+
+Telefon: 601 681 185, 500 629 172 · E-mail: biuro@exever.pl · ul. Grunwaldzka 18, 76-270 Ustka · NIP 586 225 04 18 · KRS 0000349698
+
+## Strony
+
+- [Domy szkieletowe](https://impulseo-pl.github.io/exever/domy-szkieletowe/): technologia ściany, przebieg budowy w 10 krokach, pytania i odpowiedzi
+- [Instalacje](https://impulseo-pl.github.io/exever/instalacje/): elektryczne, odgromowe, fotowoltaika, wod-kan, grzewcze, kotłownie, pompy ciepła, teletechnika
+- [Realizacje](https://impulseo-pl.github.io/exever/realizacje/): zdjęcia domów i realizacji instalacji
+- [O firmie](https://impulseo-pl.github.io/exever/o-firmie/): historia, osoby, dane rejestrowe
+- [Kontakt](https://impulseo-pl.github.io/exever/kontakt/): telefony, adresy, formularz zapytania
