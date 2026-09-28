@@ -1,4 +1,4 @@
-# EXEVER — demo v4 (domy szkieletowe + instalacje)
+# EXEVER — demo v5 (domy szkieletowe + instalacje)
 
 Lead: **Krzysztof** (w KRS prezes zarządu: Krzysztof Kowalski), **EXEVER sp. z o.o.**, +48 601 681 185, biuro@exever.pl,
 ul. Grunwaldzka 18, 76-270 Ustka; oddział: ul. Przemysłowa 6c, Koszalin. Obecna strona: https://www.exever.pl/
@@ -25,17 +25,19 @@ liczniki „50 / 60+ / 15 lat”, zero realizacji instalacji. Demo v2 to **pełn
 z przenośnikami, nadmorski resort, budynek wielorodzinny w Ustce, kotłownie, rozdzielnia) — **na ich stronie nie ma żadnego
 z nich**. W demie są wszystkie. Zero stocku: każde zdjęcie to ich materiał (`zrodla-zdjec.html`).
 
-Styl (v4, 28.09, po „bardziej zaawansowane, techniczne SEO, lepsza szata graficzna, atrakcyjna czcionka”):
-- **Font Archivo** (zmienna szerokość i grubość) — nagłówki rozciągnięte do 116%, echo rozstrzelonego logo EXEVER; tekst w normalnej szerokości.
-  Jeden plik zmienny przycięty do polskich znaków: `fonts/archivo-latin.woff2` (47 KB) + `archivo-pl.woff2` (7 KB). Wcześniej 8 plików Hanken.
-- **Nowy pierwszy ekran:** tekst po lewej, po prawej mozaika 3 ich zdjęć (dom / konstrukcja w hali / hala kurierska) — od razu widać obie
-  specjalności. Pod spodem drewniany pasek usług (4 linki do podstron i kotwic).
-- Karty „01 / 02” dla dwóch ścieżek, karty instalacji z drewnianą krawędzią, kroki budowy jako oś czasu z kółkami, opinie w kartach,
-  podstrony z nagłówkiem tekst + zdjęcie (zamiast ciemnego pasa i osobnego zdjęcia pod nim), filtry realizacji jako „pigułki”.
-- Łagodne pojawianie się sekcji przy przewijaniu (wyłączone przy `prefers-reduced-motion`). Bez mono, ziarna, liczników, loadera.
-- Grafit (#171715) + drewno (#c98a45). Polskie „sierotki” sklejane twardą spacją (poza `<title>`).
+Styl (v5, 28.09) – v4 (szeroki Archivo, etykiety wersalikami, znaczki 01/02, pigułki, wielkie liczby) Szymon ocenił jako „AI slop”.
+v5 to zwykła, jasna strona firmy budowlanej:
+- **Nagłówki: Newsreader (szeryf), tekst: Source Sans 3** – lokalnie, przycięte do polskich znaków (6 plików, 113 KB łącznie).
+- Biel + ciepła szarość (#f3f1ec) na co drugą sekcję, jeden akcent: ciemna zieleń świerka (#2e4a3e) – przyciski i linki. Drewno daje kolor na zdjęciach.
+- Pasek z adresem i mailem nad menu, białe menu z czarnym logo, hero: tekst na bieli + zdjęcie domu do prawej krawędzi.
+- Rzędy tekst/zdjęcie naprzemiennie, dane techniczne jako zwykła tabela, kroki budowy jako lista 1–10, opinie jako cytaty kursywą,
+  na dole pas z telefonami zamiast ciemnego CTA na zdjęciu. Podstrony: biały nagłówek + zdjęcie na całą szerokość.
+- **Przejścia jak na exever.pl/technologia** (tam Elementor `slideInLeft` / `slideInRight`): w każdym rzędzie element po lewej wjeżdża
+  z lewej, po prawej – z prawej; w galerii lewa kolumna z lewej, prawa z prawej, środkowa się pojawia. `data-in="l|r|f"`,
+  IntersectionObserver w `assets/app.js`, strony wyliczane w `slide()` w build.py. Bez JS i przy `prefers-reduced-motion` – bez ruchu.
+  Argument w rozmowie: „te same przejścia, które macie teraz, tylko na szybkiej stronie”.
 
-## Techniczne SEO (v4)
+## Techniczne SEO
 
 - **Kontrola:** `python _src/seo_check.py` — długość title/description, jeden h1, hierarchia nagłówków, canonical, OG, poprawność
   JSON-LD, alt + width/height obrazów, martwe linki i kotwice, duplikaty, pliki z sitemapy. Teraz: „OK – 7 stron, bez uwag”.
@@ -46,7 +48,7 @@ Styl (v4, 28.09, po „bardziej zaawansowane, techniczne SEO, lepsza szata grafi
   `ImageGallery` z 15 `ImageObject` (autor i właściciel praw = EXEVER).
 - **Mapa witryny ze zdjęciami** (`image:image`, każde zdjęcie w pełnej rozdzielczości), `lastmod`, `robots.txt` (blokuje `/_src/`), `llms.txt`.
 - W `<head>`: `hreflang` pl + x-default, Twitter Cards, `og:image:type`, `max-image-preview:large`, meta geo (Ustka), `referrer`.
-- **Wydajność:** cały CSS wklejony zminifikowany do `<head>` (zero blokujących żądań), preload jednego fontu i zdjęcia LCP z `fetchpriority`,
+- **Wydajność:** cały CSS wklejony zminifikowany do `<head>` (zero blokujących żądań), preload dwóch fontów i zdjęcia LCP z `fetchpriority`,
   zapasowy font z `size-adjust` (mniejszy CLS), `srcset`/`sizes` dopasowane do nowego układu, `width`/`height`, `loading="lazy"`.
 - Kotwice `#elektryczne`, `#sanitarne`, `#teletechnika` na /instalacje/ — linkowane z paska usług i stopki.
 - Licznik otwarć dema (`demo_views`) — koniec `assets/app.js`, 1:1 z mk-bau (`_src/licznik.js`).

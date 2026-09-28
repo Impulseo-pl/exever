@@ -10,8 +10,8 @@ with sync_playwright() as p:
     for path in pages:
         pg.goto('http://127.0.0.1:8123/exever/'+path+('?team=1'),wait_until='networkidle')
         h=pg.evaluate('document.body.scrollHeight')
-        for y in range(0,h,600): pg.evaluate(f'window.scrollTo(0,{y})'); pg.wait_for_timeout(60)
-        pg.evaluate('window.scrollTo(0,0)'); pg.wait_for_timeout(300)
+        for y in range(0,h,600): pg.evaluate(f'window.scrollTo(0,{y})'); pg.wait_for_timeout(120)
+        pg.evaluate('window.scrollTo(0,0)'); pg.wait_for_timeout(1500)
         sw=pg.evaluate('document.documentElement.scrollWidth')
         name=(path.strip('/') or 'home').replace('/','_')+f'_{w}'
         pg.screenshot(path=f'sh_{name}.png',full_page=True)
